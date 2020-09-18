@@ -24,7 +24,7 @@ class FurnitureInterceptor:
         if self._is_a_valid_candidate(flow):
             data = {
                 'url': flow.request.pretty_url,
-                'content': flow.response.raw_content,
+                'content': flow.response.get_content(),
             }
 
             self._dispatcher.dispatch(data)
