@@ -2,6 +2,8 @@ from __future__ import annotations
 from abc import ABC, abstractmethod
 from mitmproxy import ctx
 from bs4 import BeautifulSoup
+from contextlib import ExitStack
+from functools import partial
 import requests
 import os
 import codecs
@@ -50,23 +52,23 @@ class GetFurniMetadataHandler(AbstractHandler):
     def handle(self, data) -> None:
         ctx.log.info("Getting metadata of {}".format(data['file_name']))
 
+        # TODO: using with? Seems to cause some problems..
         f = open("binaries/temporary/{}".format(data['file_name']), 'wb+')
         f.write(data['content'])
         f.flush()
         f.close()
 
-        # Run the SWF decompiler script
         os.system('cd binaries && swfdecomp.exe ./temporary/{}'.format(data['file_name']))
 
-        # Just a very naive heuristic to find the x, y, and z.
+    #    with ExitStack() as stack:
+     #       command = "cd binaries/temporary && del {}".format(data['file_name'])
+      #      stack.callback(partial(os.system, command))
+
         with open("binaries/temporary/{}".format(data['file_name']), 'rb') as f:
             for line in f:
                 codecs.decode(line, 'ascii', errors='ignore')
                 stripped_line = str(line).strip()
                 if "dimensions" in stripped_line:
-                    # width (x)
-                    # length (y)
-                    # height (z)
                     soup = BeautifulSoup(stripped_line, 'html.parser')
                     tag = soup.dimensions
 
@@ -83,11 +85,87 @@ class GetFurniMetadataHandler(AbstractHandler):
                     return super().handle(data)
 
 
-class HotelAuthenticationHandler(AbstractHandler):
+class GetFurnitureIconHandler(AbstractHandler):
     def handle(self, data) -> None:
-        pass
+        icon_path = data['url'].rsplit("/", 1)[0] + "/icons/"
+        icon_file_name = data['file_name'].rsplit(".swf", 1)[0] + "_icon.png"
+
+        data['icon_filename'] = icon_file_name
+        data['icon_path'] = icon_path + icon_file_name
+
+        print(data['icon_path'])
+
+        return super().handle(data)
+
+
+class HotelAuthenticationHandler(AbstractHandler):
+    _session: requests.Session
+
+    def __init__(self, session: requests.Session):
+        self._session = session
+
+    def handle(self, data) -> None:
+        payload = {
+            'loginusername': 'Merijn',
+            'loginpassword': ''
+        }
+
+        # TODO: Handle response - this has some special logic because the backend is stupid.
+        response = self._session.post("https://hyrohotel.nl/login_submit", data=payload)
+
+        return super().handle(data)
 
 
 class StoreFurnitureHandler(AbstractHandler):
+    _session: requests.Session
+
+    def __init__(self, session: requests.Session):
+        self._session = session
+
     def handle(self, data) -> None:
-        pass
+        # Download icon from remote url in order to upload it
+        icon_data = self._session.get(data['icon_path']).content
+
+        files = {
+            'furniture_file': (data['file_name'], data['content']),
+            'furniture_icon_1': (data['icon_filename'], icon_data),
+        }
+
+        data = {
+            'page_id': '10000100',
+            'catalog_name': data['file_name'],
+            'cost_credits': '0',
+            'cost_points': '75',
+            'points_type': '5',
+            'amount': '1',
+            'song_id': '0',
+            'limited_stack': '0',
+            'limited_sells': '0',
+            'extradata': "",
+            'badge': '',
+            'club_only': '0',
+            'wall-room': "room",
+            'type': 's',
+            'width': data['width'],
+            'length': data['length'],
+            'stack_height': data['height'],
+            'allow_stack': '1',
+            'allow_walk': '0',
+            'allow_sit': '0',
+            'allow_lay': '0',
+            'allow_recycle': '1',
+            'allow_trade': '1',
+            'allow_marketplace_sell': '1',
+            'allow_gift': '1',
+            'allow_inventory_stack': '1',
+            'interaction_type': 'Default',
+            'interaction_modes_count': '2',
+            'vending_ids': '0',
+            'effect_id_male': '0',
+            'effect_id_female': '0',
+            'order_number': '0',
+            'multiheight': '0'
+        }
+
+        response = self._session.post("https://hyrohotel.nl/ase/catalogue/furni/add", files=files, data=data)
+        print(response.content)
