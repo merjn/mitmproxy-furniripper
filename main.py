@@ -4,10 +4,11 @@ from handlers import GetFurniMetadataHandler
 from handlers import StoreFurnitureHandler
 from handlers import GetFurnitureIconHandler
 from handlers import HotelAuthenticationHandler
-
+from decorators import ConcurrentHandlerDecorator
 from dispatcher import Dispatcher
 from mitmproxy import ctx
 from requests import Session
+
 
 # Kill noise by setting verbosity to 0 (flow_detail)
 ctx.options.flow_detail = 0
@@ -28,7 +29,7 @@ furniture_icon_handler.set_next(hotel_authentication_handler)
 
 hotel_authentication_handler.set_next(store_furni_handler)
 
-listeners = [furni_exists_handler]
+listeners = [ConcurrentHandlerDecorator(furni_exists_handler)]
 dispatcher = Dispatcher(listeners)
 
 addons = {

@@ -35,54 +35,74 @@ class AbstractHandler(Handler):
 
 class FurniExistsHandler(AbstractHandler):
     def handle(self, data) -> None:
-        # For now, just perform a request to the site and expect a 200 OK
+        """
+        Adds the file name to the data bag if the furniture doesn't exist.
+
+        :param data: the data bag
+        :return:
+        """
         file_name = str(data['url']).split('/')[-1]
-        request_path = "https://hyrohotel.nl/swf/dcr/hof_furni/{}".format(file_name)
-        req = requests.get(request_path)
-        if req.status_code == 200:
-            ctx.log.info("{} already exists, moving on...".format(file_name))
+        if self._furniture_exists(file_name):
+            print("Continuing...")
+            #ctx.log.info("Furniture {} already exists - continuing...".format(file_name))
             return None
 
         data['file_name'] = file_name
 
         return super().handle(data)
 
+    @staticmethod
+    def _furniture_exists(file_name: str) -> bool:
+        """
+        Checks if the furniture already exists.
+        :param file_name: furni swf file
+        :return:
+        """
+        request_path = "https://hyrohotel.nl/swf/dcr/hof_furni/{}".format(file_name)
+        req = requests.get(request_path)
+
+        return True if req.status_code == 200 else False
+
 
 class GetFurniMetadataHandler(AbstractHandler):
     def handle(self, data) -> None:
-        ctx.log.info("Getting metadata of {}".format(data['file_name']))
+        print("Getting metadata...")
+#        ctx.log.info("Getting metadata of {}".format(data['file_name']))
 
-        # TODO: using with? Seems to cause some problems..
+        self._create_swf_file(data)
+
+        with ExitStack() as stack:
+            command = "cd binaries/temporary && del {}".format(data['file_name'])
+            stack.callback(partial(os.system, command))
+
+            with open("binaries/temporary/{}".format(data['file_name']), 'rb') as f:
+                for line in f:
+                    codecs.decode(line, 'ascii', errors='ignore')
+                    stripped_line = str(line).strip()
+                    if "dimensions" in stripped_line:
+                        soup = BeautifulSoup(stripped_line, 'html.parser')
+                        tag = soup.dimensions
+
+                        # sanity check?
+                        attributes = tag.attrs
+                        if "x" not in attributes or "y" not in attributes or "z" not in attributes:
+                            ctx.log.error("x, y, or z not found in SWF file")
+                            return None
+
+                        data['width'] = tag['x']
+                        data['length'] = tag['y']
+                        data['height'] = tag['z']
+
+                        return super().handle(data)
+
+    @staticmethod
+    def _create_swf_file(data):
         f = open("binaries/temporary/{}".format(data['file_name']), 'wb+')
         f.write(data['content'])
         f.flush()
         f.close()
 
         os.system('cd binaries && swfdecomp.exe ./temporary/{}'.format(data['file_name']))
-
-    #    with ExitStack() as stack:
-     #       command = "cd binaries/temporary && del {}".format(data['file_name'])
-      #      stack.callback(partial(os.system, command))
-
-        with open("binaries/temporary/{}".format(data['file_name']), 'rb') as f:
-            for line in f:
-                codecs.decode(line, 'ascii', errors='ignore')
-                stripped_line = str(line).strip()
-                if "dimensions" in stripped_line:
-                    soup = BeautifulSoup(stripped_line, 'html.parser')
-                    tag = soup.dimensions
-
-                    # sanity check?
-                    attributes = tag.attrs
-                    if "x" not in attributes or "y" not in attributes or "z" not in attributes:
-                        ctx.log.error("x, y, or z not found in swf file :(")
-                        return None
-
-                    data['width'] = tag['x']
-                    data['length'] = tag['y']
-                    data['height'] = tag['z']
-
-                    return super().handle(data)
 
 
 class GetFurnitureIconHandler(AbstractHandler):
@@ -92,8 +112,6 @@ class GetFurnitureIconHandler(AbstractHandler):
 
         data['icon_filename'] = icon_file_name
         data['icon_path'] = icon_path + icon_file_name
-
-        print(data['icon_path'])
 
         return super().handle(data)
 
@@ -107,7 +125,7 @@ class HotelAuthenticationHandler(AbstractHandler):
     def handle(self, data) -> None:
         payload = {
             'loginusername': 'Merijn',
-            'loginpassword': ''
+            'loginpassword': 'Kiwi123'
         }
 
         # TODO: Handle response - this has some special logic because the backend is stupid.
