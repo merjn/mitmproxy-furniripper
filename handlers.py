@@ -43,8 +43,6 @@ class FurniExistsHandler(AbstractHandler):
         """
         file_name = str(data['url']).split('/')[-1]
         if self._furniture_exists(file_name):
-            print("Continuing...")
-            #ctx.log.info("Furniture {} already exists - continuing...".format(file_name))
             return None
 
         data['file_name'] = file_name
@@ -66,9 +64,6 @@ class FurniExistsHandler(AbstractHandler):
 
 class GetFurniMetadataHandler(AbstractHandler):
     def handle(self, data) -> None:
-        print("Getting metadata...")
-#        ctx.log.info("Getting metadata of {}".format(data['file_name']))
-
         self._create_swf_file(data)
 
         with ExitStack() as stack:
@@ -149,6 +144,8 @@ class StoreFurnitureHandler(AbstractHandler):
             'furniture_icon_1': (data['icon_filename'], icon_data),
         }
 
+        print("{} added to catalogue".format(data['file_name']))
+
         data = {
             'page_id': '10000100',
             'catalog_name': data['file_name'],
@@ -186,4 +183,3 @@ class StoreFurnitureHandler(AbstractHandler):
         }
 
         response = self._session.post("https://hyrohotel.nl/ase/catalogue/furni/add", files=files, data=data)
-        print(response.content)
