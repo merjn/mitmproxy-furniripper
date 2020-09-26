@@ -1,5 +1,5 @@
 from mitmproxy import http
-from dispatcher import Dispatcher
+from event import Dispatcher
 
 
 class FurnitureInterceptor:
@@ -14,7 +14,7 @@ class FurnitureInterceptor:
 
     def __init__(self, dispatcher: Dispatcher):
         """
-        Initializes the event dispatcher.
+        Initializes the event event.
         :param dispatcher:
         """
         self._dispatcher = dispatcher

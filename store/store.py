@@ -11,13 +11,3 @@ class Store(ABC):
     def create_catalogue_category(self):
         """ Adds a new category to the catalogue. """
         pass
-
-
-class ArcturusStore(Store):
-
-    def create_catalogue_category(self):
-        
-        pass
-
-    def add_furniture(self):
-        pass

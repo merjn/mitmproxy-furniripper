@@ -1,11 +1,12 @@
-from interceptors import FurnitureInterceptor
+from addons.interceptors import FurnitureInterceptor
 from handlers import FurniExistsHandler
 from handlers import FurniMetadataHandler
 from handlers import StoreFurnitureHandler
 from handlers import FurniIconHandler
 from handlers import HotelAuthenticationHandler
-from decorators import ConcurrentHandlerDecorator
-from dispatcher import Dispatcher
+from decorators.concurrent_handler_decorator import ConcurrentHandlerDecorator
+
+from event import Dispatcher
 from mitmproxy import ctx
 from requests import Session
 
@@ -34,4 +35,3 @@ dispatcher = Dispatcher(listeners)
 addons = {
     FurnitureInterceptor(dispatcher)
 }
-

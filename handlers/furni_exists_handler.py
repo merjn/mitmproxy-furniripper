@@ -11,7 +11,7 @@ class FurniExistsHandler(AbstractHandler):
         :param data: the data bag
         :return:
         """
-        file_name = str(data['url']).split('/')[-1]
+        file_name = self._create_file_name_from_url(data)
         if self._furniture_exists(file_name):
             return None
 
@@ -23,6 +23,7 @@ class FurniExistsHandler(AbstractHandler):
     def _furniture_exists(file_name: str) -> bool:
         """
         Checks if the furniture already exists.
+
         :param file_name: furni swf file
         :return:
         """
@@ -30,3 +31,13 @@ class FurniExistsHandler(AbstractHandler):
         req = requests.get(request_path)
 
         return True if req.status_code == 200 else False
+
+    @staticmethod
+    def _create_file_name_from_url(data) -> str:
+        """
+        Extracts the swf file from the url.
+
+        :param data:
+        :return:
+        """
+        return str(data['url']).split('/')[-1]
