@@ -3,6 +3,9 @@ from requests import Session
 from handlers import AbstractHandler, FurniExistsHandler, FurniMetadataHandler, HotelAuthenticationHandler, \
     StoreFurnitureHandler, FurniIconHandler
 
+# Just treat session as a singleton.
+session = Session()
+
 
 def chain_handlers() -> AbstractHandler:
     """
@@ -11,8 +14,6 @@ def chain_handlers() -> AbstractHandler:
     """
     furni_exists_handler = FurniExistsHandler()
     furni_metadata_handler = FurniMetadataHandler()
-
-    session = Session()
 
     hotel_authentication_handler = HotelAuthenticationHandler(session)
     store_furni_handler = StoreFurnitureHandler(session)
