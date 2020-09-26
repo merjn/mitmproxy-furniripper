@@ -2,7 +2,6 @@ import codecs
 import os
 from contextlib import ExitStack
 from functools import partial
-
 from bs4 import BeautifulSoup
 from mitmproxy import ctx
 
