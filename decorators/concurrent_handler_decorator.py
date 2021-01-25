@@ -14,4 +14,3 @@ class ConcurrentHandlerDecorator(AbstractHandler):
     def handle(self, data) -> None:
         p = threading.Thread(target=self._handler.handle, args=(data,))
         p.start()
-

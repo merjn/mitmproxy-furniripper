@@ -2,11 +2,9 @@ import codecs
 import os
 from contextlib import ExitStack
 from functools import partial
-from bs4 import BeautifulSoup
 from mitmproxy import ctx
-
 from handlers import AbstractHandler
-
+from bs4 import BeautifulSoup
 
 class FurniMetadataHandler(AbstractHandler):
     def handle(self, data) -> None:
@@ -24,7 +22,6 @@ class FurniMetadataHandler(AbstractHandler):
                         soup = BeautifulSoup(stripped_line, 'html.parser')
                         tag = soup.dimensions
 
-                        # sanity check?
                         attributes = tag.attrs
                         if "x" not in attributes or "y" not in attributes or "z" not in attributes:
                             ctx.log.error("x, y, or z not found in SWF file")
@@ -34,7 +31,11 @@ class FurniMetadataHandler(AbstractHandler):
                         data['length'] = tag['y']
                         data['height'] = tag['z']
 
-                        return super().handle(data)
+                        ctx.log.info("Found furniture width (x): {}".format(tag['x']))
+                        ctx.log.info("Found furniture length (y): {}".format(tag['y']))
+                        ctx.log.info("Found furniture height (z): {}".format(tag['z']))
+
+                return super().handle(data)
 
     @staticmethod
     def _create_swf_file(data):
