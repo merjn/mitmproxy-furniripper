@@ -3,4 +3,5 @@ from handlers.abstract_handler import AbstractHandler
 from handlers.furni_exists_handler import FurniExistsHandler
 from handlers.furni_metadata_handler import FurniMetadataHandler
 from handlers.furni_icon_handler import FurniIconHandler
+from handlers.push_furni_to_api_handler import PushFurniToApiHandler
 

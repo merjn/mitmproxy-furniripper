@@ -1,5 +1,6 @@
 import codecs
 import os
+import base64
 from contextlib import ExitStack
 from functools import partial
 from mitmproxy import ctx
