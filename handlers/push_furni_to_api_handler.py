@@ -11,7 +11,8 @@ class PushFurniToApiHandler(AbstractHandler):
         payload = {
             'swf_name': data['file_name'],
             'swf_content': base64.b64encode(data['content']),
-            'icon_location': data['icon_path'],
+            'icon_name': data['icon_name'],
+            'icon_content': base64.b64encode(data['icon_content']),
             'furni_height': data['height'],
             'furni_width': data['width'],
             'furni_length': data['length']
@@ -23,7 +24,7 @@ class PushFurniToApiHandler(AbstractHandler):
             if response.status_code != 200:
                 ctx.log.error("Unable to push furni to the server. Error {} occurred with status code {}".format(response.content, response.status_code))
                 return None
-        except e:
+        except Exception as e:
             ctx.log.error("Unable to push furniture to the server. Exception: ")
             ctx.log.error(e)
 
