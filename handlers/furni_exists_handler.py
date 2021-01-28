@@ -8,6 +8,7 @@ class FurniExistsHandler(AbstractHandler):
     """
 
     def handle(self, data) -> None:
+        print("HOOI")
         """
         Adds the file name to the data bag if the furniture does not exist.
         """

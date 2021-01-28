@@ -1,4 +1,5 @@
 from mitmproxy import http
+from mitmproxy.script import concurrent
 from event import Dispatcher
 
 

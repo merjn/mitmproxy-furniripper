@@ -14,7 +14,7 @@ furni_exists_handler.set_next(furniture_icon_handler)
 furniture_icon_handler.set_next(furni_metadata_handler)
 furni_metadata_handler.set_next(push_furni_to_api_handler)
 
-ctx.options.flow_detail = 0
+# ctx.options.flow_detail = 0
 
 h = furni_exists_handler
 
