@@ -2,6 +2,7 @@ from handlers import AbstractHandler
 from mitmproxy import ctx
 import requests
 import base64
+import os
 
 class PushFurniToApiHandler(AbstractHandler):
     """
@@ -18,9 +19,11 @@ class PushFurniToApiHandler(AbstractHandler):
             'furni_length': data['length']
         }
 
-        # TODO: Get API token
+        headers = {
+            "Authorization": "Bearer {}".format(os.environ.get('FURNIRIPPER_AUTH_TOKEN'))
+        }
         try:
-            response = requests.post("http://localhost:3000/add_furni", data=payload)
+            response = requests.post("http://localhost:3000/add_furni", data=payload, headers=headers)
             if response.status_code != 200:
                 ctx.log.error("Unable to push furni to the server. Error {} occurred with status code {}".format(response.content, response.status_code))
                 return None
